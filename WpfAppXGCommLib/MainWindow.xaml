@@ -1,0 +1,130 @@
+﻿<Window x:Class="WpfAppXGCommLib.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfAppXGCommLib"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="560" Width="1085">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="연결" Padding="12" Grid.Row="0" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="IP" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox x:Name="TextBox_Ip" Grid.Column="1" Width="150" Text="192.168.0.200"/>
+
+                <TextBlock Grid.Column="2"/>
+                <TextBlock Text="Port" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox x:Name="TextBox_Port" Grid.Column="4" Width="80" Text="2004"/>
+
+                <StackPanel Grid.Column="6" Orientation="Horizontal" >
+                    <Button x:Name="ButtonConnect" Content="Connect" Width="100" Click="ButtonConnect_Click"/>
+                    <Button x:Name="ButtonDisconnect" Content="Disconnect" Width="100" Click="ButtonDisconnect_Click" IsEnabled="False"/>
+                </StackPanel>
+
+                <TextBlock x:Name="Text_ConnState" Grid.Column="7" Margin="12,0,0,0" VerticalAlignment="Center"
+                           Text="Disconnected" Foreground="Tomato" FontWeight="Bold"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="디바이스 설정" Padding="12" Grid.Row="1" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="DataType" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox x:Name="ComboBox_DataType" Grid.Column="1" SelectedIndex="0">
+                    <ComboBoxItem Content="B"/>
+                    <ComboBoxItem Content="W"/>
+                </ComboBox>
+
+                <TextBlock Grid.Column="2"/>
+                <TextBlock Text="DeviceType" Grid.Column="3" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <ComboBox x:Name="ComboBox_DeviceType" Grid.Column="4" SelectedIndex="0">
+                    <ComboBoxItem Content="M"/>
+                    <ComboBoxItem Content="R"/>
+                    <ComboBoxItem Content="W"/>
+                </ComboBox>
+
+                <TextBlock Grid.Column="5"/>
+                <TextBlock Text="Byte Offset" Grid.Column="6" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox x:Name="TextBox_ByteOffset" Grid.Column="7" Width="120" Text="0"/>
+
+                <TextBlock Grid.Column="8"/>
+                <TextBlock Text="Size (Bit/B/W)" Grid.Column="9" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <TextBox x:Name="TextBox_Size" Grid.Column="10" Width="140" Text="1"/>
+
+                <TextBlock Grid.Column="11"/>
+                <Button x:Name="ButtonRead" Grid.Column="12" Content="Read" Width="120"
+                        Click="ButtonRead_Click" IsEnabled="False"/>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="쓰기" Padding="12" Grid.Row="2" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="값 목록 (B/W: 10,20,...)" VerticalAlignment="Center" Margin="0,0,8,0"/>
+
+                <TextBlock Grid.Column="1"/>
+                <TextBox x:Name="TextBox_WriteValues" Grid.Column="4" Width="100" Text="1"/>
+
+                <StackPanel Grid.Column="6" Orientation="Horizontal" >
+                    <Button x:Name="ButtonWrite" Content="Write" Width="120" Click="ButtonWrite_Click" IsEnabled="False"/>
+                    <Button x:Name="ButtonClearLog" Content="Clear Log" Width="120" Click="ButtonClearLog_Click"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox Header="로그 / 결과" Padding="12" Grid.Row="3">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBox x:Name="TextBox_Log" Grid.Row="0" FontFamily="Consolas" FontSize="13"
+                         AcceptsReturn="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+                <TextBlock Grid.Row="1" Text="표시: HEX(공백구분) / 상태 메시지" Foreground="Gray" Margin="0,8,0,0"/>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>
