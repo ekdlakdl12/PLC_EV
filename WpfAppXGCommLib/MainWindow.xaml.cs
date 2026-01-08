@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +14,9 @@ namespace WpfAppXGCommLib
         private bool _connected = false;
         private string _endpoint = "";
 
+        // [추가] 엘리베이터 창 참조 변수
+        private ElevatorWindow _elevatorUI;
+
         private const bool USE_LITTLE_ENDIAN = true;
         public MainWindow()
         {
@@ -23,6 +25,14 @@ namespace WpfAppXGCommLib
             ComboBox_DataType.SelectedIndex = 0;   // B
             ComboBox_DeviceType.SelectedIndex = 0; // M
             SetConnState(false);
+
+            // [추가] 메인 창 로드 시 엘리베이터 창 띄우기
+            this.Loaded += (s, e) =>
+            {
+                _elevatorUI = new ElevatorWindow();
+                _elevatorUI.Owner = this;
+                _elevatorUI.Show();
+            };
         }
 
         // ================== 연결 ==================
@@ -110,7 +120,7 @@ namespace WpfAppXGCommLib
                         return;
                     }
 
-                    ushort w = words[0]; 
+                    ushort w = words[0];
                     elem = USE_LITTLE_ENDIAN
                         ? new byte[] { (byte)(w & 0xFF), (byte)((w >> 8) & 0xFF) }
                         : new byte[] { (byte)((w >> 8) & 0xFF), (byte)(w & 0xFF) };
@@ -132,8 +142,8 @@ namespace WpfAppXGCommLib
                         var device = _factory.CreateDevice();
                         device.ucDataType = (byte)dataType;        // 'B' or 'W'
                         device.ucDeviceType = (byte)deviceType;    // M/R/W
-                        device.lOffset = addr;                     
-                        device.lSize = 1;                          
+                        device.lOffset = addr;
+                        device.lSize = 1;
                         drv.AddDeviceInfo(device);
                         return drv.WriteRandomDevice(elem);
                     });
@@ -301,10 +311,10 @@ namespace WpfAppXGCommLib
             {
                 var list = new List<byte>();
                 var parts = text.Split(new[] { ',', ' ', ';', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-           
+
                 foreach (var p in parts)
                 {
-                
+
                     if (p.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                     {
                         if (byte.TryParse(p.Substring(2), System.Globalization.NumberStyles.HexNumber, null, out byte hx))
