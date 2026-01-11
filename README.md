@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://img.shields.io/badge/PLC%20%26%20C%23%20WPF%20Elevator%20Control%20System-007ACC?style=for-the-badge&logo=c-sharp&logoColor=white&labelColor=1F2328" alt="프로젝트명 배너" width="100%">
+  <img src="https://img.shields.io/badge/PLC%20%26%20C%23%20WPF%20Elevator%20Control%20System-007ACC?style=for-the-badge&logo=c-sharp&logoColor=white&labelColor=1F2328" alt="프로젝트명 배너" width="100%" height="50%">
 </h1>
 
 > **LS Electric XG5000 PLC & C# WPF Interlocking Project**
