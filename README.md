@@ -27,7 +27,7 @@
 * **PLC**: LS Electric XG5000 (XGK-CPUS 시뮬레이터)
 * **PC**: C# .NET Framework (WPF)
 * **Library**: XGCommLib.dll
-* **Communication**: TCP/IP (Localhost 127.0.0.1 : 2004)
+* **Communication**: TCP/IP (Localhost 127.0.0.1 : 2004) - 시연용 TCP/IP (192.168.0.200 : 2004)
 
 ---
 
