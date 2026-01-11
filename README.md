@@ -83,6 +83,14 @@
 프로젝트 수행 결과에 대한 자세한 내용은 아래 프레젠테이션 파일에서 확인하실 수 있습니다.  
 추후 업데이트
 
+## ✨ PLC
+[PLC 레더](https://docs.google.com/spreadsheets/d/16CeHcKHgthQDonH_-AnNWvGHKgS-vQ57DcOko0OXjik/edit?gid=1853242603#gid=1853242603) 
+
+## ⬇️ PLC 레더 파일
+
+프로젝트 수행 결과에 대한 자세한 내용은 아래 프레젠테이션 파일에서 확인하실 수 있습니다.  
+[파일](https://github.com/user-attachments/files/24553181/ev_project_byte.zip) 
+
 ---
 
 
