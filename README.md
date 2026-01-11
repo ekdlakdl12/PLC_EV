@@ -56,9 +56,11 @@
 ## 🖥 실행 화면
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/32510e12-9779-4266-822c-75b1be90cffb" width="100%" controls autoplay muted loop>
+  <video src="https://github.com/user-attachments/assets/5ec6924a-b659-48c0-8a59-d64adc1710a1" width="100%" controls autoplay muted loop>
     브라우저가 비디오 태그를 지원하지 않습니다.
   </video>
+
+
   
   <p><i>PLC 시뮬레이터와 C# WPF 연동 엘리베이터 제어 시연 영상 (40s)</i></p>
 </div>
