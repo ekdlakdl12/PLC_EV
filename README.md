@@ -5,8 +5,8 @@
 ---
 
 ## 👥 프로젝트 팀원
-* **최준영**: PLC 래더 로직 설계 및 C# 통신 인터페이스 구현
-* **윤은식**: PLC 래더 로직 설계 및 UI/UX 디자인
+* **최준영**
+* **윤은식**
 
 ---
 
@@ -52,7 +52,6 @@
 ---
 
 ## 🖥 실행 화면
-| Main Controller (Log) | Elevator Monitor (UI) |
 
 <div align="center">
   <video src="https://github.com/user-attachments/assets/32510e12-9779-4266-822c-75b1be90cffb" width="100%" controls autoplay muted loop>
