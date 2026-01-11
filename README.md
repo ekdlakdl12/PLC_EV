@@ -54,9 +54,8 @@
 ## 🖥 실행 화면
 | Main Controller (Log) | Elevator Monitor (UI) |
 | :---: | :---: |
-| ![Main](https://via.placeholder.com/400x250?text=MainWindow+Log) | ![Monitor](https://via.placeholder.com/250x400?text=Elevator+UI) |
 
-> **Note**: 위 이미지는 실제 캡처 화면으로 대체하여 프로젝트의 시인성을 높였습니다.
+|https://github.com/user-attachments/assets/32510e12-9779-4266-822c-75b1be90cffb|
 
 ---
 
