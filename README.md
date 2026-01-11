@@ -1,67 +1,67 @@
-# 🛗 PLC & WPF Elevator Control System
+# 🛗 PLC & C# WPF Elevator Control System
 
-> **XG5000 PLC 시뮬레이터와 C# WPF를 연동한 실시간 엘리베이터 모니터링 및 제어 프로젝트**
+> **LS Electric XG5000 PLC 시뮬레이터와 C# WPF를 연동한 실시간 엘리베이터 제어 및 모니터링 시스템**
 
 ---
 
-## 👥 팀 구성 (Team)
+## 👥 프로젝트 팀원
 * **최준영**: PLC 래더 로직 설계 및 C# 통신 인터페이스 구현
 * **윤은식**: PLC 래더 로직 설계 및 UI/UX 디자인
 
 ---
 
-## 🚀 프로젝트 개요 (Project Overview)
-본 프로젝트는 산업 현장에서 널리 쓰이는 **LS Electric PLC**와 PC 간의 통신 기술을 활용하여 엘리베이터 시스템을 가상으로 제어하고 모니터링하는 것을 목표로 합니다. **XGCommLib** 라이브러리를 통해 PLC 메모리에 실시간으로 접근하여 데이터를 처리합니다.
+## 🚀 프로젝트 개요
+본 프로젝트는 **Industrial Automation** 기술을 기반으로, PLC(XGK 시리즈)와 PC(C# WPF) 간의 **Ethernet 통신(MLDP 프로토콜)**을 통해 엘리베이터의 수직 이동 및 도어 개폐 시스템을 제어하고 실시간으로 상태를 모니터링하는 프로젝트입니다.
 
-### 🔑 주요 기능
-1. **실시간 데이터 바인딩**: PLC의 `%MW0`(층수) 데이터를 읽어 UI에 즉각 반영
-2. **도어 제어 시퀀스**: 3초 타이머와 인터록 회로를 통한 실제와 유사한 문 개폐 동작
-3. **상태 모니터링**: 문 열림/닫힘 상태(`%MX30`, `%MX31`)를 시각적으로 표현
-4. **통신 로그**: PLC와의 모든 트랜잭션을 실시간으로 로깅
-
----
-
-## 🛠 기술 스택 (Tech Stack)
-* **Development Environment**: Visual Studio 2022
-* **Language/Framework**: C#, WPF (.NET Framework)
-* **PLC Tool**: XG5000 Simulator
-* **Library**: XGCommLib (MLDP Protocol)
-* **Protocol**: TCP/IP (Local Loopback 127.0.0.1:2004)
+### 주요 기능
+- **실시간 데이터 동기화**: PLC의 메모리(%M, %W)를 0.3초 주기로 스캔하여 WPF UI에 실시간 반영
+- **안전 로직(Interlock)**: 문이 열려 있는 동안 엘리베이터 이동 금지 및 상충하는 모터 동작 차단 로직 구현
+- **자동/수동 제어**: 시뮬레이터 버튼 입력과 C# UI 버튼 입력을 통한 하이브리드 제어 지원
+- **로그 시스템**: PLC와의 모든 Read/Write 트랜잭션을 시간대별로 기록
 
 ---
 
-## 📑 시스템 구조
+## 🛠 기술 스택
+* **PLC**: LS Electric XG5000 (XGK-CPUS 시뮬레이터)
+* **PC**: C# .NET Framework (WPF)
+* **Library**: XGCommLib.dll
+* **Communication**: TCP/IP (Localhost 127.0.0.1 : 2004)
 
-### PLC 메모리 맵 (Memory Map)
-| 구분 | 주소 | 역할 |
-| :--- | :--- | :--- |
-| **Input** | %IX0.0.0 / 0.0.1 | 물리 버튼 입력 (문닫힘 / 문열림) |
-| **Internal** | %MX1 / %MX2 | 버튼 입력 내부 비트 |
-| **Control** | %MX40 / %MX41 | 문닫힘 / 문열림 모터 구동 비트 |
-| **Status** | %MX30 / %MX31 | 문닫힘 / 문열림 완료 상태 비트 |
-| **Data** | %MW0 | 현재 층수 데이터 저장 (Word) |
+---
 
-### 래더 로직 주요 구조
+## 📊 시스템 아키텍처 및 변수 할당
 
-* **자기유지**: 버튼을 떼어도 동작이 유지되도록 설계
-* **인터록**: 열림/닫힘 동작이 동시에 일어나지 않도록 보호
-* **데이터 이동**: 도착 완료 시 `MOV` 명령어로 층수 데이터 업데이트
+### 1. 주요 디바이스 할당 (Memory Map)
+`변수_명칭.xlsx`를 기반으로 정의된 핵심 주소입니다.
+
+| 구분 | 주소 | 명칭 | 기능 설명 |
+| :--- | :--- | :--- | :--- |
+| **입력** | %IX0.0.0 | 문닫힘버튼 | 엘리베이터 문 닫힘 수동 입력 |
+| **입력** | %IX0.0.1 | 문열림버튼 | 엘리베이터 문 열림 수동 입력 |
+| **제어** | %MX40 | 문닫힘모터 | 문 닫힘 동작 수행 (자기유지 회로 포함) |
+| **제어** | %MX41 | 문열림모터 | 문 열림 동작 수행 (인터록 적용) |
+| **상태** | %MX30 | 문닫힘완료 | 문이 완전히 닫힌 상태 알림 |
+| **상태** | %MX31 | 문열림완료 | 문이 완전히 열린 상태 알림 |
+| **데이터** | %MW0 | 현재층수 | 엘리베이터의 현재 위치 정보 (Word) |
+
+### 2. PLC 래더 로직 구조
+
+- **시퀀스 제어**: 타이머(TON)를 사용하여 문 개폐 속도를 3초로 제어
+- **데이터 처리**: `MOVE` 명령어를 사용하여 도착 완료 시 해당 층수 데이터를 `%MW0`에 저장
 
 ---
 
 ## 🖥 실행 화면
-> **Tip**: 아래 이미지 경로에 실제 캡처한 사진을 넣어보세요!
-
-| MainWindow (Log/Conn) | Elevator Monitor (UI) |
+| Main Controller (Log) | Elevator Monitor (UI) |
 | :---: | :---: |
-| ![Main](https://via.placeholder.com/400x250?text=MainWindow+Log) | ![UI](https://via.placeholder.com/250x400?text=Elevator+UI) |
+| ![Main](https://via.placeholder.com/400x250?text=MainWindow+Log) | ![Monitor](https://via.placeholder.com/250x400?text=Elevator+UI) |
+
+> **Note**: 위 이미지는 실제 캡처 화면으로 대체하여 프로젝트의 시인성을 높였습니다.
 
 ---
 
-## ⚙️ 설치 및 실행 방법
-1. **XG5000**에서 래더 파일을 열고 **시뮬레이터**를 시작합니다.
-2. 시뮬레이터가 `RUN` 모드인지 확인 후 프로그램을 '쓰기' 합니다.
-3. C# 프로젝트를 빌드 및 실행합니다.
-4. IP `127.0.0.1`, Port `2004`를 입력하고 **Connect** 버튼을 누릅니다.
-
----
+## ⚙️ 실행 방법
+1. **XG5000**에서 래더 파일을 열고 `시뮬레이터 시작`을 클릭합니다.
+2. Visual Studio에서 프로젝트를 열고 `XGCommLib.dll` 참조를 확인합니다.
+3. 실행 후 IP에 `127.0.0.1`, Port에 `2004`를 입력하고 `Connect` 버튼을 누릅니다.
+4. `2F UP` 또는 `1F DOWN` 버튼을 눌러 동작을 테스트합니다.
