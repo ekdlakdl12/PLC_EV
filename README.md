@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/PLC%20%26%20C%23%20WPF%20Elevator%20Control%20System-007ACC?style=for-the-badge&logo=c-sharp&logoColor=white&labelColor=1F2328" alt="프로젝트명 배너" width="100%">
 </h1>
 
-# LS Electric XG5000 PLC 시뮬레이터와 C# WPF를 연동한 실시간 엘리베이터 제어 시스템 **
+> **LS Electric XG5000 PLC & C# WPF Interlocking Project**
 
 ---
 
