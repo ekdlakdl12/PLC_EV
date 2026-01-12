@@ -193,6 +193,7 @@
                                 <TextBlock x:Name="Text_Door" Text="-" FontWeight="SemiBold"/>
                             </StackPanel>
 
+                            <!-- 이벤트 코드 표시 -->
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <TextBlock Text="코드:" Width="64"/>
                                 <TextBlock x:Name="TextEventCode" Text="-" FontWeight="SemiBold"/>
@@ -296,6 +297,7 @@
                                         Click="Button_Up1F_Click"
                                         Margin="0"/>
 
+                                <!-- 1층 Down은 일반적으로 사용 안 함(필요하면 비트 추가해서 활성화 가능) -->
                                 <Button x:Name="Btn_Out_F1_Down"
                                         Grid.Column="4"
                                         Content="▼"
@@ -326,6 +328,7 @@
                                 <TextBlock Text="2F" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                 <TextBlock Grid.Column="1" Text="호출" Style="{StaticResource Muted}" VerticalAlignment="Center"/>
 
+                                <!-- 2층 Up은 일반적으로 사용 안 함(필요하면 비트 추가해서 활성화 가능) -->
                                 <Button x:Name="Btn_Out_F2_Up"
                                         Grid.Column="2"
                                         Content="▲"
@@ -393,6 +396,7 @@
                                     Padding="18" Grid.ColumnSpan="2">
 
                                 <Canvas x:Name="ShaftCanvas" Width="860" Height="520">
+                                    <!-- floor lines -->
                                     <Line X1="0" Y1="100" X2="860" Y2="100" Stroke="#FFD1D5DB" StrokeThickness="2"/>
                                     <Line X1="0" Y1="480" X2="860" Y2="480" Stroke="#FFD1D5DB" StrokeThickness="2"/>
 
@@ -428,11 +432,12 @@
 
                                                 <!-- [변경/추가] CAR 상단에 2줄(메인/서브) 표시 -->
                                                 <StackPanel HorizontalAlignment="Center" Margin="0,10,0,6">
-                                                    <TextBlock x:Name="Text_CarFloor"
-                                                               Text="-"
-                                                               HorizontalAlignment="Center"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="#FF111827"/>
+                                                <TextBlock x:Name="Text_CarFloor"
+                                                           Text="-"
+                                                           HorizontalAlignment="Center"
+                                                           Margin="0,10,0,6"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#FF111827"/>
                                                     <TextBlock x:Name="Text_CarRoute"
                                                                Text=""
                                                                HorizontalAlignment="Center"
