@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using XGCommLib;
 
@@ -14,8 +13,6 @@ namespace WpfAppPLC
     {
         // ============================================================
         // 1) PLC 디바이스 주소(엑셀/래더 기준)
-        //    - "버튼 입력"은 C#에서 펄스(0→1→0)로 써야 안전합니다.
-        //    - "상태 비트/이벤트 코드"는 C#에서 읽기(모니터링)만 합니다.
         // ============================================================
 
         // ---- 버튼 입력(명령) : C#에서 펄스로 써야 하는 %MX 비트 ----
@@ -34,6 +31,9 @@ namespace WpfAppPLC
         private const int MX_AUTO_DOOR_SAVE = 32;  // %MX32 자동문열림저장
         private const int MX_EV_MOVING = 34;  // %MX34 EV이동중
 
+        // ---- 이동 목표층 판단용 HOLD ----
+        private const int MX_FIR_HOLD = 36;  // %MX36 1층으로 이동중(유지)
+        private const int MX_SEC_HOLD = 37;  // %MX37 2층으로 이동중(유지)
 
         private const int MX_DOOR_CLOSE_MTR = 40;  // %MX40 문닫힘모터
         private const int MX_DOOR_OPEN_MTR = 41;  // %MX41 문열림모터
@@ -64,35 +64,27 @@ namespace WpfAppPLC
         private int _cmdBufLen;
         private bool _cmdUsesOneShot = false;
 
-        // 버튼 동시 입력/펄스 충돌 방지
         private readonly SemaphoreSlim _cmdLock = new(1, 1);
-
-        // 폴링(Task) 제어
         private CancellationTokenSource? _pollCts;
 
-        // 최신 상태 캐시(인터락/표시/애니메이션 트리거)
         private PlcStatus _last = new PlcStatus();
 
         // ============================================================
         // 3) 시각화(애니메이션) 파라미터
-        //    - WPF Transform 값을 폴링 주기마다 조금씩 갱신하는 방식
         // ============================================================
 
         private const double CAR_Y_1F = 0.0;
         private const double CAR_Y_2F = -380.0;
 
-        // 문 열림 폭
         private const double DOOR_OPEN_X = 60.0;
 
         private static readonly TimeSpan TRAVEL_TIME = TimeSpan.FromSeconds(7);
         private static readonly TimeSpan DOOR_TIME = TimeSpan.FromSeconds(3);
 
-        // 이동 애니메이션 상태
         private bool _carAnimating = false;
         private DateTime _carAnimStart;
         private double _carFromY, _carToY;
 
-        // 문 애니메이션 상태
         private bool _doorAnimating = false;
         private DateTime _doorAnimStart;
         private bool _doorOpening = false;
@@ -100,18 +92,14 @@ namespace WpfAppPLC
         public MainWindow()
         {
             InitializeComponent();
-
-            // 프로그램 종료 시 안전하게 Disconnect
             Closing += (_, __) => SafeDisconnect();
-
-            // 초기 UI 세팅
             SetDisconnectedUi();
         }
 
         // ============================================================
+        // 4) UI 이벤트 핸들러
         // ============================================================
 
-        // [Connect] 버튼
         private void Button_Connect_Click(object sender, RoutedEventArgs e)
         {
             string ip = (TextBox_IP.Text ?? "").Trim();
@@ -134,14 +122,12 @@ namespace WpfAppPLC
             }
         }
 
-        // [Disconnect] 버튼
         private void Button_Disconnect_Click(object sender, RoutedEventArgs e)
         {
             SafeDisconnect();
             AppendLog("[연결] 해제");
         }
 
-        // [Clear Log] 버튼
         private void Button_ClearLog_Click(object sender, RoutedEventArgs e)
         {
             TextBox_Log.Clear();
@@ -173,13 +159,10 @@ namespace WpfAppPLC
 
         private void Connect(string endpoint)
         {
-            // 중복 연결 방지
             SafeDisconnect();
 
             // (1) 상태 읽기 드라이버 연결
             _drvStatus = _factory.GetMLDPCommObject20(endpoint);
-
-            // Connect("") : XGCommLib에서 일반적으로 빈 문자열을 넣어 연결하는 형태가 많습니다.
             if (_drvStatus.Connect("") != 1)
                 throw new InvalidOperationException("상태읽기용 드라이버 Connect() 실패");
 
@@ -194,16 +177,12 @@ namespace WpfAppPLC
             }
             else
             {
-                // 환경에 따라 2번째 연결이 막힐 수 있어 OneShot로 전환
                 _cmdUsesOneShot = true;
                 _drvCmd = null;
                 AppendLog("[경고] 명령용 2번째 연결 실패 → 버튼은 OneShot(임시 연결) 방식으로 전송합니다.");
             }
 
-            // (3) 폴링 시작
             StartPolling();
-
-            // UI 상태 전환
             SetConnectedUi();
         }
 
@@ -236,7 +215,6 @@ namespace WpfAppPLC
 
             _last = new PlcStatus();
 
-            // 시각화 초기 위치
             Dispatcher.Invoke(() =>
             {
                 CarTranslate.Y = CAR_Y_1F;
@@ -269,7 +247,6 @@ namespace WpfAppPLC
 
             _statusOrder.Clear();
 
-            // ---- MX 상태 비트들(읽기) ----
             AddStatusMx(MX_FIR_FLOOR);
             AddStatusMx(MX_SEC_FLOOR);
 
@@ -286,13 +263,11 @@ namespace WpfAppPLC
 
             AddStatusMx(MX_AUTO_DOOR_SAVE);
 
-            // (옵션) 외부 호출 관련 상태
             AddStatusMx(MX_EXT_UP);
             AddStatusMx(MX_EXT_UP_2F);
             AddStatusMx(MX_EXT_DOWN_H);
             AddStatusMx(MX_EXT_DOWN_NH_2F);
 
-            // ---- MB 이벤트 코드(읽기) ----
             AddStatusMb(MB_EVENT_CODE);
 
             _statusBufLen = _statusOrder.Count;
@@ -304,7 +279,6 @@ namespace WpfAppPLC
 
             _cmdOrder.Clear();
 
-            // ---- 버튼 입력 비트들(쓰기) ----
             AddCmdMx(MX_DOOR_CLOSE_BTN);
             AddCmdMx(MX_DOOR_OPEN_BTN);
             AddCmdMx(MX_F_BTN);
@@ -315,7 +289,6 @@ namespace WpfAppPLC
             _cmdBufLen = _cmdOrder.Count;
         }
 
-        // 상태읽기용 MX 등록
         private void AddStatusMx(int mxBit)
         {
             if (_drvStatus == null) return;
@@ -323,7 +296,6 @@ namespace WpfAppPLC
             _statusOrder.Add(DeviceKey.Mx(mxBit));
         }
 
-        // 상태읽기용 MB 등록
         private void AddStatusMb(int mbByte)
         {
             if (_drvStatus == null) return;
@@ -331,7 +303,6 @@ namespace WpfAppPLC
             _statusOrder.Add(DeviceKey.Mb(mbByte));
         }
 
-        // 명령쓰기용 MX 등록
         private void AddCmdMx(int mxBit)
         {
             if (_drvCmd == null) return;
@@ -339,24 +310,16 @@ namespace WpfAppPLC
             _cmdOrder.Add(DeviceKey.Mx(mxBit));
         }
 
-        // MX 비트 디바이스 등록
         private void AddMxBitDevice(CommObject20 drv, int mxBit)
         {
-            // MX 비트 접근:
-            // - DeviceType = 'M'
-            // - DataType  = 'X'
-            // - lOffset   = (bit / 8)  : 바이트 오프셋
-            // - lSize     = (bit % 8)  : 비트 위치(0~7)
             var dev = _factory.CreateDevice();
             dev.ucDeviceType = (byte)'M';
             dev.ucDataType = (byte)'X';
             dev.lOffset = mxBit / 8;
             dev.lSize = mxBit % 8;
-
             drv.AddDeviceInfo(dev);
         }
 
-        // MB 바이트 디바이스 등록
         private void AddMbByteDevice(CommObject20 drv, int mbByteOffset)
         {
             var dev = _factory.CreateDevice();
@@ -478,8 +441,6 @@ namespace WpfAppPLC
 
         private async Task PulseMX(int mxBit, string label, int onMs = 80)
         {
-            // [안전] 이동 중에는 문 제어를 막아두는 것이 일반적으로 안전합니다.
-            // (PLC에도 인터락이 있더라도 UI에서도 한 번 더 방어)
             if (_last.EvMoving && (mxBit == MX_DOOR_OPEN_BTN || mxBit == MX_DOOR_CLOSE_BTN))
             {
                 AppendLog($"[차단] EV 이동중 → '{label}' 명령 무시");
@@ -507,10 +468,8 @@ namespace WpfAppPLC
             }
         }
 
-        // MX 비트를 0/1로 쓰기
         private async Task WriteMxBit(int mxBit, bool value)
         {
-            // (A) 명령용 드라이버가 있으면: WriteRandomDevice로 빠르게 쓰기
             if (!_cmdUsesOneShot && _drvCmd != null)
             {
                 int idx = _cmdOrder.IndexOf(DeviceKey.Mx(mxBit));
@@ -524,7 +483,6 @@ namespace WpfAppPLC
                 return;
             }
 
-            // (B) 2번째 연결이 막힌 환경: OneShot(임시 연결)로 1개 디바이스만 전송
             await Task.Run(() =>
             {
                 CommObject20? drv = null;
@@ -540,7 +498,6 @@ namespace WpfAppPLC
                     if (drv.Connect("") != 1)
                         throw new InvalidOperationException("OneShot Connect() 실패");
 
-                    // 1개 디바이스만 등록하고 1바이트만 씁니다.
                     AddMxBitDevice(drv, mxBit);
 
                     byte[] wbuf = new byte[1];
@@ -600,7 +557,6 @@ namespace WpfAppPLC
                     Text_Moving.Text = "정지";
                 }
 
-                Text_Moving.Text = cur.EvMoving ? "이동중" : "정지";
                 Lamp_Moving.Fill = cur.EvMoving ? BrushFrom("#FF2563EB") : BrushFrom("#FFE2E8F0");
 
                 // ------------------------------
@@ -642,7 +598,6 @@ namespace WpfAppPLC
 
                 Text_Door.Text = doorText;
 
-                // 문 램프는 “열림/닫힘/모터동작” 중 하나라도 true면 켜진 것으로 표시
                 bool doorLampOn = cur.DoorOpened || cur.DoorClosed || cur.DoorOpenMotor || cur.DoorCloseMotor;
                 Lamp_Door.Fill = doorLampOn ? BrushFrom("#FF2563EB") : BrushFrom("#FFE2E8F0");
 
@@ -655,25 +610,18 @@ namespace WpfAppPLC
                 // ------------------------------
                 // (7) 애니메이션 트리거
                 // ------------------------------
-
-                // (A) 이동 시작: EvMoving이 OFF→ON 되는 순간
                 if (cur.EvMoving && !prev.EvMoving)
                 {
                     _carAnimating = true;
                     _carAnimStart = DateTime.Now;
 
-                    // 출발 위치: prev 층을 기준으로 잡습니다.
                     _carFromY = prev.SecFloor ? CAR_Y_2F : CAR_Y_1F;
 
-                    // 도착 위치: Hold 비트로 추정(래더 구조에 맞춰 필요시 수정)
-                    // - SecHold가 켜지면 2층으로 가는 케이스로 판단
-                    // - FirHold가 켜지면 1층으로 가는 케이스로 판단
                     if (cur.SecHold) _carToY = CAR_Y_2F;
                     else if (cur.FirHold) _carToY = CAR_Y_1F;
                     else _carToY = _carFromY;
                 }
 
-                // (B) 문 열기 시작: DoorOpenMotor OFF→ON
                 if (cur.DoorOpenMotor && !prev.DoorOpenMotor)
                 {
                     _doorAnimating = true;
@@ -681,7 +629,6 @@ namespace WpfAppPLC
                     _doorOpening = true;
                 }
 
-                // (C) 문 닫기 시작: DoorCloseMotor OFF→ON
                 if (cur.DoorCloseMotor && !prev.DoorCloseMotor)
                 {
                     _doorAnimating = true;
@@ -689,18 +636,12 @@ namespace WpfAppPLC
                     _doorOpening = false;
                 }
 
-                // ------------------------------
-                // (3) 현재 프레임 시각화 반영
-                // ------------------------------
                 ApplyVisualizationFrame(cur);
             });
         }
 
         private void ApplyVisualizationFrame(PlcStatus cur)
         {
-            // =========================
-            // (A) 엘리베이터 이동 애니메이션
-            // =========================
             if (_carAnimating)
             {
                 double t = (DateTime.Now - _carAnimStart).TotalMilliseconds / TRAVEL_TIME.TotalMilliseconds;
@@ -714,14 +655,10 @@ namespace WpfAppPLC
             }
             else
             {
-                // 애니메이션 중이 아니면 현재층 상태로 “스냅”
                 if (cur.SecFloor) CarTranslate.Y = CAR_Y_2F;
                 else if (cur.FirFloor) CarTranslate.Y = CAR_Y_1F;
             }
 
-            // =========================
-            // (B) 문 열림/닫힘 애니메이션
-            // =========================
             if (_doorAnimating)
             {
                 double t = (DateTime.Now - _doorAnimStart).TotalMilliseconds / DOOR_TIME.TotalMilliseconds;
@@ -731,7 +668,6 @@ namespace WpfAppPLC
                     _doorAnimating = false;
                 }
 
-                // 열기: 0→1, 닫기: 1→0
                 double p = _doorOpening ? t : (1.0 - t);
                 p = EaseInOut(p);
 
@@ -740,7 +676,6 @@ namespace WpfAppPLC
             }
             else
             {
-                // 모터가 꺼져 있고 상태가 확정이면 “스냅”
                 if (cur.DoorOpened)
                 {
                     DoorLeftTransform.X = -DOOR_OPEN_X;
@@ -765,6 +700,7 @@ namespace WpfAppPLC
                 ButtonConnect.IsEnabled = false;
                 ButtonDisconnect.IsEnabled = true;
                 Text_ConnState.Text = "Connected";
+                Text_ConnState.Foreground = BrushFrom("#FF059669");
             });
         }
 
@@ -820,7 +756,6 @@ namespace WpfAppPLC
 
         private static double EaseInOut(double t)
         {
-            // 부드러운 가감속(0~1)
             return t < 0.5 ? 2 * t * t : 1 - Math.Pow(-2 * t + 2, 2) / 2;
         }
 
@@ -846,31 +781,25 @@ namespace WpfAppPLC
 
         private struct PlcStatus
         {
-            // 층 상태
             public bool FirFloor;
             public bool SecFloor;
 
-            // 문 상태/모터
             public bool DoorClosed;
             public bool DoorOpened;
             public bool DoorCloseMotor;
             public bool DoorOpenMotor;
 
-            // 이동 상태
             public bool EvMoving;
 
-            // 유지/자동문
             public bool FirHold;
             public bool SecHold;
             public bool AutoDoorSave;
 
-            // 외부 호출 관련(옵션)
             public bool ExtUp;
             public bool ExtUp2F;
             public bool ExtDownH;
             public bool ExtDownNh2F;
 
-            // 이벤트 코드(%MB100)
             public byte EventCode;
         }
     }
