@@ -81,7 +81,8 @@
 ## ⬇️ 프로젝트 발표 자료
 
 프로젝트 수행 결과에 대한 자세한 내용은 아래 프레젠테이션 파일에서 확인하실 수 있습니다.  
-추후 업데이트
+[PPT](https://github.com/user-attachments/files/24556639/EV_PROJECT_.pdf) 
+
 
 ## ⬇️  PLC 레더 이미지 
 [PLC 레더](https://docs.google.com/spreadsheets/d/16CeHcKHgthQDonH_-AnNWvGHKgS-vQ57DcOko0OXjik/edit?gid=1853242603#gid=1853242603) 
